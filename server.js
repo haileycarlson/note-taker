@@ -1,12 +1,11 @@
 const express = require('express')
-const { fs } = require('fs')
 const path = require('path')
-const noteData = require('./db/db.json')
-// const api = require("./routes/index.js");
-// const api = require('./public/assets/js/index.js')
+// const api = require('./routes/notes.js')
 const uuid = require('./helpers/uuid')
+const fs = require('fs')
+// const { readAndAppend, readFromFile } = require('./helpers/fsUtils.js')
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 const app = express()
 
@@ -16,82 +15,51 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use(express.static('public'))
 
-app.get('/', (req, res) =>
-  res.sendFile(path.join(__dirname, '/public/index.html')),
-)
-
 app.get('/notes', (req, res) =>
   res.sendFile(path.join(__dirname, '/public/notes.html')),
 )
 
-app.get('/api/notes', (req, res) =>
-  // fs.readFile('./db/db.json', (err, data) => {
-  //   if (err) {
-  //     console.error(err)
-  //   } else {
-  //     // Convert string into JSON object
-  //     const parsedNotes = JSON.parse(data)
+// app.get('*', (req, res) =>
+//   res.sendFile(path.join(__dirname, '/public/index.html')),
+// )
 
-  //     // Add a new review
-  //     parsedNotes.push(newNote)
-  //   }
-  // }),
-  res.status(200).json(noteData),
-)
-
-app.post('api/notes', (req, res) => {
-  // Write updated reviews back to the file
-  // fs.writeFile(
-  //   './db/db.json',
-  //   JSON.stringify(parsedNotes, null, 4),
-  //   (writeErr) =>
-  //     writeErr
-  //       ? console.error(writeErr)
-  //       : console.info('Successfully updated notes!'),
-  // )
+app.get('/api/notes', (req, res) => {
+  fs.readFile('./db/db.json', 'utf8', function (err, noteData) {
+    res.json(JSON.parse(noteData))
+  })
+})
+app.post('/api/notes', (req, res) => {
   const { title, text } = req.body
+  console.log(req.body)
 
-  // If all the required properties are present
   if (title && text) {
-    // Variable for the object we will save
     const newNote = {
       title,
       text,
-      note_id: uuid(),
+      id: uuid(),
     }
 
-    // Obtain existing reviews
-    // fs.readFile('./db/db.json', 'utf8', (err, data) => {
-    //   if (err) {
-    //     console.error(err)
-    //   } else {
-    //     // Convert string into JSON object
-    //     const parsedNotes = JSON.parse(data)
-
-    //     // Add a new review
-    //     parsedNotes.push(newNote)
-
-    //     // Write updated reviews back to the file
-    //     fs.writeFile(
-    //       './db/db.json',
-    //       JSON.stringify(parsedNotes, null, 4),
-    //       (writeErr) =>
-    //         writeErr
-    //           ? console.error(writeErr)
-    //           : console.info('Successfully updated notes!'),
-    //     )
-    //   }
-    // })
-    fs.writeFile(
-      './db/db.json',
-      JSON.stringify(parsedNotes, null, 4),
-      (writeErr) =>
-        writeErr
-          ? console.error(writeErr)
-          : console.info('Successfully updated notes!'),
-    )
+    fs.readFile('./db/db.json', 'utf8', function (err, noteData) {
+      const oldData = JSON.parse(noteData)
+      const newData = oldData.unshift(newNote)
+      console.log(oldData)
+      fs.writeFile('./db/db.json', JSON.stringify(oldData), (err) => {
+        if (err) console.log(err)
+        else {
+          const response = { status: 'success', body: newNote }
+          console.log(response)
+          res.status(201).json(response)
+        }
+      })
+    })
+  } else {
+    res.status(500).json('error in posting')
   }
 })
+
+app.get('*', (req, res) =>
+  res.sendFile(path.join(__dirname, '/public/index.html')),
+)
 
 app.listen(PORT, () =>
   console.log(`Example app listening at http://localhost:${PORT}`),
