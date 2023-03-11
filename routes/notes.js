@@ -1,19 +1,3 @@
-// const noteRouter = require('express').Router()
-// const { readFromFile } = require('../helpers/fsUtils')
-
-// noteRouter.get('/notes', (req, res) => {
-//   readFromFile('../../public/notes.html').then((data) =>
-//     res.json(JSON.parse(data)),
-//   )
-// })
-
-// noteRouter.get('/', (req, res) => {
-//   readFromFile('../../public/index.html').then((data) =>
-//     res.json(JSON.parse(data)),
-//   )
-// })
-
-// module.exports = noteRouter
 const notes = require('express').Router()
 const uuid = require('../helpers/uuid')
 // const { readAndAppend, readFromFile } = require('../helpers/fsUtils.js')
@@ -26,22 +10,6 @@ notes.get('/api/notes', (req, res) => {
 })
 
 notes.post('/api/notes', (req, res) => {
-  //   const { title, text } = req.body
-
-  //   // If all the required properties are present
-  //   if (title && text) {
-  //     // Variable for the object we will save
-  //     const newNote = {
-  //       title,
-  //       text,
-  //       note_id: uuid(),
-  //     }
-
-  //     readAndAppend(newNote, './db/db.js')
-  //     res.json(`Note added successfully 🚀`)
-  //   } else {
-  //     res.error('Error adding notes')
-  //   }
   const { title, text } = req.body
 
   if (title && text) {
